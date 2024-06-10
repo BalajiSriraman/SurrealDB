@@ -6,23 +6,6 @@ use surrealdb::opt::auth::Root;
 use surrealdb::sql::Thing;
 use surrealdb::Surreal;
 
-#[derive(Debug, Serialize)]
-struct Name<'a> {
-    first: &'a str,
-    last: &'a str,
-}
-
-#[derive(Debug, Serialize)]
-struct Person<'a> {
-    title: &'a str,
-    name: Name<'a>,
-    marketing: bool,
-}
-
-#[derive(Debug, Serialize)]
-struct Responsibility {
-    marketing: bool,
-}
 
 #[derive(Debug, Deserialize)]
 struct Record {
@@ -30,51 +13,54 @@ struct Record {
     id: Thing,
 }
 
-const db = Surreal::new::<Ws>("127.0.0.1:8000").await?;
+// #[tokio::main]
+// async fn secondary_function() -> surrealdb::Result<()> {
+//     // Connect to the server
+//     let db = Surreal::new::<Ws>("127.0.0.1:8000").await?;
+ 
+//     // Signin as a namespace, database, or root user
+//     db.signin(Root {
+//         username: "root",
+//         password: "root",
+//     })
+//     .await?;
 
-// Signin as a namespace, database, or root user
-db.signin(Root {
-    username: "root",
-    password: "root",
-})
-.await?;
-#[tokio::main]
-async fn mainx() -> surrealdb::Result<()> {
+//     // Select a specific namespace / database
+//     db.use_ns("test").use_db("test").await?;
+
+//     let people: Vec<Record> = db.select("person").await?;
+//     dbg!(people);
+
+//     // Perform a custom advanced query
+//     let groups = db
+//         .query("SELECT * FROM person")
+//         .await?;
+//     dbg!(groups);
+
+//     Ok(())
+// }
+
+#[get("/")]
+async fn secondary_function() -> surrealdb::Result<()> {
     // Connect to the server
+    let db = Surreal::new::<Ws>("127.0.0.1:8000").await?;
+ 
+    // Signin as a namespace, database, or root user
+    db.signin(Root {
+        username: "root",
+        password: "root",
+    })
+    .await?;
 
     // Select a specific namespace / database
     db.use_ns("test").use_db("test").await?;
 
-    // Create a new person with a random id
-    let created: Vec<Record> = db
-        .create("person")
-        .content(Person {
-            title: "Founder & CEO",
-            name: Name {
-                first: "Tobie",
-                last: "Morgan Hitchcock",
-            },
-            marketing: true,
-        })
-    .await?;
-
-    dbg!(created);
-
-    // Update a person record with a specific id
-    let updated: Option<Record> = db
-        .update(("person", "jaime"))
-        .merge(Responsibility { marketing: true })
-        .await?;
-    dbg!(updated);
-
-    // Select all people records
     let people: Vec<Record> = db.select("person").await?;
     dbg!(people);
 
     // Perform a custom advanced query
     let groups = db
-        .query("SELECT marketing, count() FROM type::table($table) GROUP BY marketing")
-        .bind(("table", "person"))
+        .query("SELECT * FROM person")
         .await?;
     dbg!(groups);
 
@@ -82,12 +68,7 @@ async fn mainx() -> surrealdb::Result<()> {
 }
 
 
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
-}
-
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index])
+    rocket::build().mount("/", routes![test])
 }
