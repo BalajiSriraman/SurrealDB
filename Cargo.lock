@@ -7,7 +7,9 @@ name = "SurrealDB-learnings"
 version = "0.1.0"
 dependencies = [
  "rocket",
+ "serde",
  "surrealdb",
+ "tokio",
 ]
 
 [[package]]
